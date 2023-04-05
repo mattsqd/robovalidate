@@ -14,86 +14,87 @@ command:
         # Requires https://github.com/squizlabs/PHP_CodeSniffer be installed.
         coding-standards:
             options:
-            # This is initially configured for Drupal. However, this can be any PHPCS standard.
-            # Individual PHPCS commands cannot use more than one standar, so this will cause
-            # the same command to be run for each standard for each path.
-            standards:
-                - Drupal
-                - DrupalPractice
-            # This is required for non-Drupal projects. It will be in the form of:
-            #   path/to/files/a:
-            #     extensions: 'php,module,inc'
-            #     ignore: '*node_modules/*,*bower_components/*,*vendor/*,*.min.js,*.min.css'
-            #   path/to/files/b: {}
-            #   path/to/files/c:
-            #     standard:
-            #        - psr2
-            # The key is used as the path, and the value are the options passed to PHPCS.
-            # If no options are given, as in 'b', then 'similar-options' will be used.
-            # If any options are given, then similar options will not be used, so you must
-            # add any options in 'similar-options' that should be there in addition to the
-            # overrides.
-            # The 'standard' is different. If it is not given, it will use the 'standards' option.
-            # If it is given, it will override 'standards' option.
-            # If 'standard' is only given, as in 'c' 'similar-options' WILL still be applied.
-            paths: {}
-            # These are the options passed to PHPCS if 'paths' does not set any options.
-            # Please see https://github.com/squizlabs/PHP_CodeSniffer/wiki/Configuration-Options.
-            similar-options:
-                colors: ''
-                extensions: 'php,module,inc,install,test,profile,theme,css,info'
-                ignore: '*node_modules/*,*bower_components/*,*vendor/*,*.min.js,*.min.css'
+                # This is initially configured for Drupal. However, this can be any PHPCS standard.
+                # Individual PHPCS commands cannot use more than one standar, so this will cause
+                # the same command to be run for each standard for each path.
+                standards:
+                    - Drupal
+                    - DrupalPractice
+                # This is required for non-Drupal projects. It will be in the form of:
+                #   path/to/files/a:
+                #     extensions: 'php,module,inc'
+                #     ignore: '*node_modules/*,*bower_components/*,*vendor/*,*.min.js,*.min.css'
+                #   path/to/files/b: {}
+                #   path/to/files/c:
+                #     standard:
+                #        - psr2
+                # The key is used as the path, and the value are the options passed to PHPCS.
+                # If no options are given, as in 'b', then 'similar-options' will be used.
+                # If any options are given, then similar options will not be used, so you must
+                # add any options in 'similar-options' that should be there in addition to the
+                # overrides.
+                # The 'standard' is different. If it is not given, it will use the 'standards' option.
+                # If it is given, it will override 'standards' option.
+                # If 'standard' is only given, as in 'c' 'similar-options' WILL still be applied.
+                paths: {}
+                # These are the options passed to PHPCS if 'paths' does not set any options.
+                # Please see https://github.com/squizlabs/PHP_CodeSniffer/wiki/Configuration-Options.
+                similar-options:
+                    colors: ''
+                    extensions: 'php,module,inc,install,test,profile,theme,css,info'
+                    ignore: '*node_modules/*,*bower_components/*,*vendor/*,*.min.js,*.min.css'
         # Used in 'validate:composer-lock'
         composer-lock:
-            # Can be set to a global location if needed.
-            composer-path: 'vendor/bin/composer'
-            # Only useful if composer.json lives in something besides the root directory.
-            working-directory: './'
+            options:
+                # Can be set to a global location if needed.
+                composer-path: 'vendor/bin/composer'
+                # Only useful if composer.json lives in something besides the root directory.
+                working-directory: './'
         # Used in 'validate:commit-messages'
         commit-messages:
-            # This is the branch that the current branch is going to be merged into.
-            target-branch: develop
-            # The name of the git remote to pull the latest commits from.
-            git-remote: origin
-            # The regular expression that much match for all commits not in 'target-branch'.
-            # Note how {$project_id} is not part of the pattern but replaced with whatever is
-            # in 'project-id' before the regular expression is used.
-            pattern: '/^{$project_id}-(\d{4}): /'
-            # These next two describe how the commits should be formed.
-            short-help: 'Commit messages must start with: ''{$project_id}-x:y'''
-            long-help:
-                - 'Where x is the ticket number.'
-                - 'And y is a space.'
-                - ''
-                - 'How do I update my commit messages?'
-                - 'See https://www.atlassian.com/git/tutorials/rewriting-history'
-                - ''
-                - 'After re-rewriting the history, you should --force-with-lease the push.'
-                - 'https://stackoverflow.com/questions/52823692/git-push-force-with-lease-vs-force#:~:text=%2D%2Dforce%2Dwith%2Dlease%20is%20a%20safer%20option%20that%20will,elses%20work%20by%20force%20pushing.'
+            options:
+                # This is the branch that the current branch is going to be merged into.
+                target-branch: develop
+                # The name of the git remote to pull the latest commits from.
+                git-remote: origin
+                # The regular expression that much match for all commits not in 'target-branch'.
+                # Note how {$project_id} is not part of the pattern but replaced with whatever is
+                # in 'project-id' before the regular expression is used.
+                pattern: '/^{$project_id}-(\d{4}): /'
+                # These next two describe how the commits should be formed.
+                short-help: 'Commit messages must start with: ''{$project_id}-x:y'''
+                long-help:
+                    - 'Where x is the ticket number.'
+                    - 'And y is a space.'
+                    - ''
+                    - 'How do I update my commit messages?'
+                    - 'See https://www.atlassian.com/git/tutorials/rewriting-history'
+                    - ''
+                    - 'After re-rewriting the history, you should --force-with-lease the push.'
+                    - 'https://stackoverflow.com/questions/52823692/git-push-force-with-lease-vs-force#:~:text=%2D%2Dforce%2Dwith%2Dlease%20is%20a%20safer%20option%20that%20will,elses%20work%20by%20force%20pushing.'
         # Used in 'validate:branch-name'
         branch-name:
             options:
-            # The regular expression that must match the branch name.
-            pattern: '/^feature\/{$project_id}-([\d]{1,})-(?!.*--)([a-z\d]{1})([a-z\d-]{3,})([a-z\d]{1})$/'
-            # Show help messages if the branch name does not match.
-            custom-help:
-                - 'feature/{$project_id}-* where * can be:'
-                - ' - Always lower case.'
-                - ' - Starts and end with a letter or integer.'
-                - ' - Contains letters, integers, or dashes (non-consecutive).'
-                - ' - At least 5 characters long.'
-            # These refer to all the possible branch names. There are 4 different types and they will be
-            # described below. If you'd like to override any of these, you must put all back in that you'd like to
-            # use, they will not be merged together.
-        valid-branch-names:
-            options:
-                # Matches a branch named 'develop'.
-                - 'explicit|develop'
-                # Matches a branch named 'main'.
-                - 'explicit|main'
-                # Matches a custom regular expression found in $pattern.
-                - 'custom|'
-                # Matches a branch like: hotfix/2.1.3.
-                - 'semantic|hotfix'
-                # Matches a branch like (the last number MUST be a 0): release/2.1.0.
-                - 'semantic_end_0|release'
+                # The regular expression that must match the branch name.
+                pattern: '/^feature\/{$project_id}-([\d]{1,})-(?!.*--)([a-z\d]{1})([a-z\d-]{3,})([a-z\d]{1})$/'
+                # Show help messages if the branch name does not match.
+                custom-help:
+                    - 'feature/{$project_id}-* where * can be:'
+                    - ' - Always lower case.'
+                    - ' - Starts and end with a letter or integer.'
+                    - ' - Contains letters, integers, or dashes (non-consecutive).'
+                    - ' - At least 5 characters long.'
+                # These refer to all the possible branch names. There are 4 different types and they will be
+                # described below. If you'd like to override any of these, you must put all back in that you'd like to
+                # use, they will not be merged together.
+                valid-branch-names:
+                    # Matches a branch named 'develop'.
+                    - 'explicit|develop'
+                    # Matches a branch named 'main'.
+                    - 'explicit|main'
+                    # Matches a custom regular expression found in $pattern.
+                    - 'custom|'
+                    # Matches a branch like: hotfix/2.1.3.
+                    - 'semantic|hotfix'
+                    # Matches a branch like (the last number MUST be a 0): release/2.1.0.
+                    - 'semantic_end_0|release'
