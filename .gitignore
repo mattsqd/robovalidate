@@ -1,0 +1,4 @@
+vendor/
+# Ignore ide files
+.vscode/
+/.idea/

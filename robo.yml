@@ -1,0 +1,10 @@
+# This file is used when contributing to check for coding standards.
+command:
+    validate:
+        coding-standards:
+            options:
+                paths:
+                    # Robo projects use psr2 standards.
+                    src:
+                        extensions: 'php'
+                        standard: psr2
