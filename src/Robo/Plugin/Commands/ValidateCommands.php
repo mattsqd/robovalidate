@@ -170,7 +170,7 @@ class ValidateCommands extends Tasks
         }
         $table->render();
         if ($success) {
-            $this->printError('All tests are valid');
+            $this->sayWithWrapper('All tests are valid');
         } else {
             $this->printError('At least one test has failed');
         }
