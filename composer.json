@@ -22,7 +22,16 @@
         "squizlabs/php_codesniffer": "Recommended if wanting to validate coding standards."
     },
     "require-dev": {
+        "composer/composer": "^2.5",
         "squizlabs/php_codesniffer": "^3.6"
+    },
+    "scripts": {
+        "validate-all": [
+            "robo validate:all"
+        ],
+        "cbf": [
+            "phpcbf --standard=psr2 src"
+        ]
     },
     "config": {
         "optimize-autoloader": true,
