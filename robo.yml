@@ -8,3 +8,44 @@ command:
                     src:
                         extensions: 'php'
                         standard: psr2
+        commit-messages:
+            options:
+                # This is the branch that the current branch is going to be merged into.
+                target-branch: 1.x
+                # The regular expression that much match for all commits not in 'target-branch'.
+                # Note how {$project_id} is not part of the pattern but replaced with whatever is
+                # in 'project-id' before the regular expression is used.
+                pattern: '/^(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) #\d+: /'
+                # These next two describe how the commits should be formed.
+                short-help: 'Commit messages must start with: ''[KEYWORD] #x:y'''
+                long-help:
+                    - 'Where x is the issue number.'
+                    - 'And y is a space.'
+                    - ''
+                    - 'Please see all valid [KEYWORD] at https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue'
+                    -
+                    - 'How do I update my commit messages?'
+                    - 'See https://www.atlassian.com/git/tutorials/rewriting-history'
+                    - ''
+                    - 'After re-rewriting the history, you should --force-with-lease the push.'
+                    - 'https://stackoverflow.com/questions/52823692/git-push-force-with-lease-vs-force#:~:text=%2D%2Dforce%2Dwith%2Dlease%20is%20a%20safer%20option%20that%20will,elses%20work%20by%20force%20pushing.'
+        # Used in 'validate:branch-name'
+        branch-name:
+            options:
+                # The regular expression that must match the branch name.
+                pattern: '/^feature\/([\d]{1,})-(?!.*--)([a-z\d]{1})([a-z\d-]{3,})([a-z\d]{1})$/'
+                # Show help messages if the branch name does not match.
+                custom-help:
+                    - 'feature/x-y Where x is the issue number and y can be:'
+                    - ' - Always lower case.'
+                    - ' - Starts and end with a letter or integer.'
+                    - ' - Contains letters, integers, or dashes (non-consecutive).'
+                    - ' - At least 5 characters long.'
+                # These refer to all the possible branch names. There are 4 different types and they will be
+                # described below. If you'd like to override any of these, you must put all back in that you'd like to
+                # use, they will not be merged together.
+                valid-branch-names:
+                    # Matches a branch named '1.x'.
+                    - 'explicit|1.x'
+                    # Matches a custom regular expression found in $pattern.
+                    - 'custom|'
