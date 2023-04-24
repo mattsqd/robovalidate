@@ -422,7 +422,7 @@ class ValidateCommands extends Tasks
             'project-id' => '',
             'target-branch' => 'develop',
             'git-remote' => 'origin',
-            'pattern' => '/^{$project_id}-(\d{4}): /',
+            'pattern' => '/^{$project_id}-(\d+): /',
             'short-help' => 'Commit messages must start with: \'{$project_id}-x:y\'',
             'long-help' => [
                 'Where x is the ticket number.',

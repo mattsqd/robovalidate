@@ -5,9 +5,9 @@ command:
         options:
         # This is used as a token replacement. It is most useful for 'pattern' so
         # you can ensure that commit and branch names have a issue number in them
-        # so that Jira, Github, or Gitlab know which commits and branches belong
+        # so that Jira, GitHub, or Gitlab know which commits and branches belong
         # to which issue.
-        # For example, if you bitbucket issue was XZY-1234, you canmake project-id
+        # For example, if you bitbucket issue was XZY-1234, you can make project-id
         # XYZ.
         project-id: ''
         # Used in 'validate:coding-standards'
@@ -15,7 +15,7 @@ command:
         coding-standards:
             options:
                 # This is initially configured for Drupal. However, this can be any PHPCS standard.
-                # Individual PHPCS commands cannot use more than one standar, so this will cause
+                # Individual PHPCS commands cannot use more than one standard, so this will cause
                 # the same command to be run for each standard for each path.
                 standards:
                     - Drupal
@@ -60,7 +60,7 @@ command:
                 # The regular expression that much match for all commits not in 'target-branch'.
                 # Note how {$project_id} is not part of the pattern but replaced with whatever is
                 # in 'project-id' before the regular expression is used.
-                pattern: '/^{$project_id}-(\d{4}): /'
+                pattern: '/^{$project_id}-(\d+): /'
                 # These next two describe how the commits should be formed.
                 short-help: 'Commit messages must start with: ''{$project_id}-x:y'''
                 long-help:
