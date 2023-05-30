@@ -3,13 +3,13 @@ command:
     validate:
         # Used in 'validate:coding-standards' and 'validate:branch-name'
         options:
-        # This is used as a token replacement. It is most useful for 'pattern' so
-        # you can ensure that commit and branch names have a issue number in them
-        # so that Jira, GitHub, or Gitlab know which commits and branches belong
-        # to which issue.
-        # For example, if you bitbucket issue was XZY-1234, you can make project-id
-        # XYZ.
-        project-id: ''
+            # This is used as a token replacement. It is most useful for 'pattern' so
+            # you can ensure that commit and branch names have an issue number in them
+            # so that Jira, GitHub, or Gitlab know which commits and branches belong
+            # to which issue.
+            # For example, if you bitbucket issue was XZY-1234, you can make project-id
+            # XYZ.
+            project-id: ''
         # Used in 'validate:coding-standards'
         # Requires https://github.com/squizlabs/PHP_CodeSniffer be installed.
         coding-standards:
