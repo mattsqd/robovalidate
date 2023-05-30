@@ -3,31 +3,24 @@ command:
     validate:
         # Used in 'validate:coding-standards' and 'validate:branch-name'
         options:
-        # This is used as a token replacement. It is most useful for 'pattern' so
-        # you can ensure that commit and branch names have a issue number in them
-        # so that Jira, GitHub, or Gitlab know which commits and branches belong
-        # to which issue.
-        # For example, if you bitbucket issue was XZY-1234, you can make project-id
-        # XYZ.
-        project-id: ''
+            # This is used as a token replacement. It is most useful for 'pattern' so
+            # you can ensure that commit and branch names have an issue number in them
+            # so that Jira, GitHub, or Gitlab know which commits and branches belong
+            # to which issue.
+            # For example, if you bitbucket issue was XZY-1234, you can make project-id
+            # XYZ.
+            project-id: ''
         # Used in 'validate:coding-standards'
         # Requires https://github.com/squizlabs/PHP_CodeSniffer be installed.
         coding-standards:
             options:
-                # This is initially configured for Drupal. However, this can be any PHPCS standard.
-                # Individual PHPCS commands cannot use more than one standard, so this will cause
-                # the same command to be run for each standard for each path.
-                standards:
-                    - Drupal
-                    - DrupalPractice
                 # This is required for non-Drupal projects. It will be in the form of:
                 #   path/to/files/a:
                 #     extensions: 'php,module,inc'
                 #     ignore: '*node_modules/*,*bower_components/*,*vendor/*,*.min.js,*.min.css'
                 #   path/to/files/b: {}
                 #   path/to/files/c:
-                #     standard:
-                #        - psr2
+                #     standard: 'Drupal'
                 # The key is used as the path, and the value are the options passed to PHPCS.
                 # If no options are given, as in 'b', then 'similar-options' will be used.
                 # If any options are given, then similar options will not be used, so you must
@@ -38,9 +31,10 @@ command:
                 # If 'standard' is only given, as in 'c' 'similar-options' WILL still be applied.
                 paths: {}
                 # These are the options passed to PHPCS if 'paths' does not set any options.
-                # Please see https://github.com/squizlabs/PHP_CodeSniffer/wiki/Configuration-Options.
+                # Please see https://github.com/squizlabs/PHP_CodeSniffer/wiki/Configuration-Options
+                # and https://github.com/squizlabs/PHP_CodeSniffer/wiki/Usage.
                 similar-options:
-                    colors: ''
+                    standard: 'Drupal,DrupalPractice'
                     extensions: 'php,module,inc,install,test,profile,theme,css,info'
                     ignore: '*node_modules/*,*bower_components/*,*vendor/*,*.min.js,*.min.css'
         # Used in 'validate:composer-lock'
@@ -79,7 +73,9 @@ command:
                 pattern: '/^feature\/{$project_id}-([\d]{1,})-(?!.*--)([a-z\d]{1})([a-z\d-]{3,})([a-z\d]{1})$/'
                 # Show help messages if the branch name does not match.
                 custom-help:
-                    - 'feature/{$project_id}-* where * can be:'
+                    - 'feature/{$project_id}-x-y'
+                    - ' Where x is the ticket number.'
+                    - ' And y is:'
                     - ' - Always lower case.'
                     - ' - Starts and end with a letter or integer.'
                     - ' - Contains letters, integers, or dashes (non-consecutive).'

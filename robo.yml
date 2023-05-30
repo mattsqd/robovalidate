@@ -6,7 +6,7 @@ command:
                 paths:
                     # Robo projects use psr2 standards.
                     src:
-                        extensions: 'php'
+                        extensions: php
                         standard: psr2
         commit-messages:
             options:
