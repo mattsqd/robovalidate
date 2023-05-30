@@ -203,11 +203,9 @@ class ValidateCommands extends Tasks
      */
     public function validateCodingStandards(
         array $opts = [
-            'standards' => ['Drupal', 'DrupalPractice'],
             'paths' => [],
             'similar-options' => [
-                'standard' => '',
-                'colors' => '',
+                'standard' => 'Drupal,DrupalPractice',
                 'extensions' => 'php,module,inc,install,test,profile,theme,css,info',
                 'ignore' => '*node_modules/*,*bower_components/*,*vendor/*,*.min.js,*.min.css',
             ],
@@ -218,16 +216,14 @@ class ValidateCommands extends Tasks
             $paths,
             $similar_options,
         ] = $this->getOptions([
-                'paths',
-                'similar-options',
-            ], $opts, false);
+            'paths',
+            'similar-options',
+        ], $opts, false);
         [
-            $standards,
             $composer_json_path,
         ] = $this->getOptions([
-                'standards',
-                'composer-json-path',
-            ], $opts);
+            'composer-json-path',
+        ], $opts);
         $this->sayWithWrapper('Checking for coding standards issues.');
         // Load composer.json and determine where web root and paths are.
         if (empty($paths)) {
@@ -238,11 +234,10 @@ class ValidateCommands extends Tasks
                     file_get_contents($composer_json_path),
                     true
                 );
-                $web_root = $composer['extra']['drupal-scaffold']['locations']['web-root'];
                 if (!empty($composer['extra']['installer-paths'])) {
                     foreach ($composer['extra']['installer-paths'] as $key => $installer_paths) {
                         if (!empty($installer_paths)) {
-                            switch ($installer_paths[0]) {
+                            switch ($installer_paths[0] ?? '') {
                                 case 'type:drupal-custom-module':
                                     $custom_modules_path = str_replace(
                                         '/{$name}',
@@ -271,7 +266,7 @@ class ValidateCommands extends Tasks
                     }
                 }
             }
-            $web_root = $web_root ?? 'web/';
+            $web_root = $composer['extra']['drupal-scaffold']['locations']['web-root'] ?? 'web/';
             // Ensure web root ends in "/".
             $web_root = !str_ends_with(
                 $web_root,
@@ -279,28 +274,19 @@ class ValidateCommands extends Tasks
             ) ? $web_root.'/' : $web_root;
 
             // Set defaults if not found in composer.json.
-            $custom_modules_path = $custom_modules_path ?? $web_root.'modules/custom';
-            $custom_profiles_path = $custom_profiles_path ?? $web_root.'profiles/custom';
-            $custom_theme_path = $custom_theme_path ?? $web_root.'themes/custom';
+            $custom_modules_path = $custom_modules_path ?? $web_root . 'modules/custom';
+            $custom_profiles_path = $custom_profiles_path ?? $web_root . 'profiles/custom';
+            $custom_theme_path = $custom_theme_path ?? $web_root . 'themes/custom';
 
             $paths = [
-                $custom_modules_path => $similar_options,
-                $custom_profiles_path => $similar_options,
-                $custom_theme_path => $similar_options,
+                $custom_modules_path => [],
+                $custom_profiles_path => [],
+                $custom_theme_path => [],
             ];
-        } else {
-            // Go through each explicitly configured path and set the options for
-            // each if not given.
-            foreach ($paths as &$options) {
-                // Save the explicit standards.
-                $standard = $options['standard'] ?? [];
-                unset($options['standard']);
-                if (empty($options)) {
-                    $options = $similar_options;
-                }
-                // Add the explicit standards back.
-                $options['standard'] = (array) $standard;
-            }
+        }
+        // Set similar option defaults on the paths.
+        foreach ($paths as &$options) {
+            $options += $similar_options;
         }
         unset($options);
         // Remove any path that does not actually exist.
@@ -318,24 +304,12 @@ class ValidateCommands extends Tasks
         }
         $one_failed = false;
         foreach ($paths as $path => $path_options) {
-            // If standards is not given for a path, use the --standards option.
-            if (empty($path_options['standard'])) {
-                $standards = (array) $standards;
-            } else {
-                $standards = (array) $path_options['standard'];
-            }
-            // This is a virtual option since phpcs only supports one
-            // standard at a time.
-            unset($path_options['standard']);
-            foreach ($standards as $standard) {
-                $success = $this->taskExec('./vendor/bin/phpcs')
-                    ->options($path_options, '=')
-                    ->option('standard', $standard, '=')
-                    ->arg($path)
-                    ->run()->wasSuccessful();
-                if (!$one_failed && !$success) {
-                    $one_failed = true;
-                }
+            $success = $this->taskExec('./vendor/bin/phpcs')
+                ->options($path_options, '=')
+                ->arg($path)
+                ->run()->wasSuccessful();
+            if (!$one_failed && !$success) {
+                $one_failed = true;
             }
         }
         if ($one_failed) {
@@ -624,7 +598,7 @@ class ValidateCommands extends Tasks
                 case 'custom':
                     if (empty(array_filter($custom_help))) {
                         $this->printError("If 'custom' branch type is used then --custom-help must be given. Otherwise,"
-                        . " pass custom --valid-branch-names without 'custom'.");
+                            . " pass custom --valid-branch-names without 'custom'.");
                         return new ResultData(ResultData::EXITCODE_ERROR);
                     }
                     foreach ($custom_help as &$item) {
