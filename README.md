@@ -35,6 +35,10 @@ All the options live under the `command.validate.options` namespace in robo.yml.
 
 Some commands share the same option, such as project-id. So changing it will affect all commands unless you move that key under the specific commands section. You can see an example of this with 'pattern' which is used in two commands.
 
+If you'd like to initialize your robo.yml with what's in robo.example.yml, please use the command:
+
+`vendor/bin/robo validate:init-robo-yml`
+
 ### Quick Start
 
 The quick start assumes:

@@ -5,6 +5,7 @@ namespace RoboValidate\Robo\Plugin\Commands;
 use Robo\ResultData;
 use Robo\Tasks;
 use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Run validation commands.
@@ -657,5 +658,183 @@ class ValidateCommands extends Tasks
         $this->sayWithWrapper("SUCCESS: Branch name '$branch_name' is valid.");
 
         return new ResultData();
+    }
+
+    /**
+     * Initialize a robo.yml file with configuration for this package.
+     *
+     * @command validate:init-robo-yml
+     *
+     * @return \Robo\ResultData
+     */
+    public function validateInitRoboYml()
+    {
+        if (!$robo_example_path = $this->findFirstFileUp('robo.example.yml')) {
+            throw new \Exception('Unable to load a robo.example.yml from this project.');
+        }
+
+        $project_robo_yml_relative_path = './robo.yml';
+        $robo_example_relative_path = str_replace(getcwd(), '.', $robo_example_path);
+        if (!file_exists('robo.yml') &&
+            $this->confirm("Would you like to copy $project_robo_yml_relative_path to your project root?")) {
+            $this->taskFilesystemStack()->copy($robo_example_path, $project_robo_yml_relative_path)->run();
+        }
+        if (file_exists($project_robo_yml_relative_path)) {
+            $parsed_yml_array = Yaml::parseFile($project_robo_yml_relative_path);
+        } else {
+            $parsed_yml_array = [];
+        }
+        $project_id =& $parsed_yml_array['command']['validate']['options']['project-id'];
+
+        if ($this->confirm("Would you like to update some settings in your $project_robo_yml_relative_path" .
+            " using prompts? WARNING: This will remove all comments from the file.")) {
+            $format_comments = static function (array $comments) use ($robo_example_relative_path): string {
+                return "\n\nAdditional Context from $robo_example_relative_path:\n\n" . implode("\n", $comments);
+            };
+            $updated_site_robo = false;
+            $default = $project_id ?? '[Not Set]';
+            $comments = $this->getYmlFileCommentsForKey('command:validate:options:project-id', $robo_example_path);
+            if ($this->confirm("Optional project-id is '$default', would you like to update it?" .
+                $format_comments($comments))) {
+                $updated_site_robo = true;
+                $project_id = (string) $this->ask('Set a value:');
+            }
+            if ($updated_site_robo) {
+                $notice = "# Automatically Generated from 'robo validate:init-robo-yml'.\n# See " .
+                    "$robo_example_relative_path for additional context.\n";
+                file_put_contents($project_robo_yml_relative_path, $notice . Yaml::dump($parsed_yml_array, 10));
+            }
+        }
+
+        if (empty($project_id)) {
+            $this->say("You are not using a project-id.");
+            $this->say("It's highly recommended that you copy all options that include '{\$project_id}' in " .
+                "$robo_example_relative_path to your robo.yml and configure them to meet your needs.");
+            $this->say("Please look at $project_robo_yml_relative_path for an example as well.");
+        }
+
+        $this->sayWithWrapper('The default configuration is built around Jira issue numbers for how it integrates ' .
+            'with with the commit message and branch naming validation.');
+        if (!$this->confirm('Are you using Jira for issue tracking?')) {
+            $this->say("If you're using GitHub issue tracker, please take a look at " .
+                "$project_robo_yml_relative_path for an example.");
+            $this->say("If you're using GitLab issue tracker, take a look at this documentation " .
+                'https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically');
+        }
+    }
+
+    /**
+     * Fron the current dir, keep going up until you find $file_name.
+     *
+     * @param string $file_name
+     *   A file name with no paths.
+     *
+     * @return null|string
+     *   The absolute path to the found file or null if none found.
+     */
+    protected function findFirstFileUp(string $file_name) :?string
+    {
+        $dirs = explode(DIRECTORY_SEPARATOR, __DIR__);
+        while ($current_dir = array_pop($dirs)) {
+            $possible_abs_file_path = implode(DIRECTORY_SEPARATOR, $dirs) .
+                DIRECTORY_SEPARATOR . $current_dir . DIRECTORY_SEPARATOR . $file_name;
+            if (file_exists($possible_abs_file_path)) {
+                return $possible_abs_file_path;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Given the path to a YML key in a YML file, return all that key's comments.
+     *
+     * THIS ONLY WORKS FOR YML OBJECTS, NOT ON ARRAYS.
+     * For example key.child.0 will not work as '0' array items can not be accessed.
+     *
+     * @param string $key_path
+     *   A nested parent child key of a YML file. Like top:child1:child2:final. Where final is the comment you want.
+     * @param $file_path
+     *   A path to a YML file.
+     *
+     * @return array
+     *   An array of lines of comments of $key_path.
+     *
+     * @throws \Exception
+     *   If the file is not readable or a parseable YML file.
+     */
+    protected function getYmlFileCommentsForKey(string $key_path, string $file_path) :array
+    {
+        // Use the Symfony Yaml parser to:
+        // * Ensure proper formed YML file.
+        // * Find the $key_path they asked for to ensure it's there before we search for its comments.
+        $parsed_yml_array = Yaml::parseFile($file_path);
+        $results = $parsed_yml_array;
+        $current_debug = '';
+        // Turn the $key_path into an array and use that as the array keys to search in the parsed YML file.
+        $yml_keys_descending = explode(':', $key_path);
+        foreach ($yml_keys_descending as $yml_key) {
+            // As it nests down, keep track of where it is at currently in a more viewable way.
+            $current_debug .= " > $yml_key";
+            if (array_key_exists($yml_key, $results)) {
+                // Results now becomes the 'one level down' value that will be looked in.
+                $results = $results[$yml_key];
+                // If the key exists, but it has no value, still make it an array for the next loop around to determine
+                // if there are more keys to find down.
+                if (null === $results) {
+                    $results = [];
+                }
+            } else {
+                $array_keys_found = implode(', ', array_keys($results));
+                if (!strlen($array_keys_found)) {
+                    $array_keys_found = '[There are no keys here, you may have gone too far]';
+                }
+                throw new \Exception("The YML key $yml_key does not exist in $file_path. Could not find a " .
+                    " key at $current_debug. Possible array key(s) at this level: $array_keys_found.");
+            }
+        }
+        // If it has made it this var, the $key_path was found, otherwise an exception is thrown.
+        // We don't use the values from above, as we don't care about the values of the key, only that it was found.
+
+        // Initialize the comments for $key_path.
+        $lines_in_comment_block = [];
+
+        // Initialize the YML key to look for starting at the top most parent.
+        $current_yml_key = array_shift($yml_keys_descending);
+
+        $handle = fopen($file_path, 'r');
+        if (!$handle) {
+            throw new \Exception("Could not open $file_path to be read.");
+        }
+        // Go through each line of the file looking for comments and then determining if those comments belong to the
+        // $key_path.
+        while (($line = fgets($handle)) !== false) {
+            // Check if the line starts with #, that is a comment. Capture all the comments...
+            if (preg_match('/^\s*#/', $line)) {
+                $lines_in_comment_block[] = trim($line);
+            // Until we get to a non-comment. Unless that line is the final key that we're looking for, discard
+            // all previous comments found.
+            } else {
+                // Check if the line starts with empty space + $current_yml_key + :
+                // If yes, it means all comments found before are for this key.
+                if (preg_match('/^\s*' . preg_quote($current_yml_key) . ':/', $line)) {
+                    // If there are more parent keys to search, the final key has not been found, do not capture
+                    // the comments yet. Instead, get the next parent as the current.
+                    if (!empty($yml_keys_descending)) {
+                        $current_yml_key = array_shift($yml_keys_descending);
+                    // The final key has been found, $lines_in_comment_block is now only its comments.
+                    } else {
+                        break;
+                    }
+                }
+                // Discard all the comments if it was not for a key being looked for.
+                $lines_in_comment_block = [];
+            }
+        }
+        fclose($handle);
+        if (!empty($yml_keys_descending)) {
+            throw new \Exception('The YML comment parser did not make it to the last key in question, ' .
+                'it could not find the final keys of: ' . implode(' > ', $yml_keys_descending));
+        }
+        return $lines_in_comment_block;
     }
 }
