@@ -71,7 +71,11 @@ command:
         branch-name:
             options:
                 # The regular expression that must match the branch name.
-                pattern: '/^feature\/{$project_id}-([\d]{1,})-(?!.*--)([a-z\d]{1})([a-z\d-]{3,})([a-z\d]{1})$/'
+                # The {$project_id} will be replaced by command.validate.options.project-id. If you don't want the
+                # project ID in the branch names, remove '{$project_id}-'.
+                # The '([\d]{1,})' portion after the project ID matches the issue numbers in the tracker. In this case
+                # it matches at least one digit. The rest of the regex is the 'y' variable in the custom-help propery.
+                pattern: '/^feature\/{$project_id}-(\d+)-(?!.*--)([a-z\d]{1})([a-z\d-]{3,})([a-z\d]{1})$/'
                 # Show help messages if the branch name does not match.
                 custom-help:
                     - 'feature/{$project_id}-x-y'
