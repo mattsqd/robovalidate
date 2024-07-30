@@ -1,0 +1,48 @@
+name: Validate Feature Branches
+
+on:
+    push:
+        branches:
+            - 'feature/*'
+    pull_request:
+        branches:
+            - 'feature/*'
+
+jobs:
+    feature_branch:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: Cache Composer dependencies
+              uses: actions/cache@v3
+              with:
+                  path: /tmp/composer-cache
+                  key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+
+            - name: Install Composer dependencies
+              uses: php-actions/composer@v6
+              with:
+                  php_version: "8.3"
+                  version: "2"
+                  args: "--ignore-platform-reqs --optimize-autoloader"
+
+            - name: Run on feature branches
+              if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/feature/')
+              run: |
+                  # Run all commands and capture their exit statuses
+                  vendor/bin/robo validate:branch-name || status1=$? || status1=0
+                  vendor/bin/robo validate:coding-standards || status2=$? || status2=0
+                  vendor/bin/robo validate:composer-lock || status3=$? || status3=0
+
+                  # Exit with a non-zero status if any command failed
+                  if [ $status1 -ne 0 ] || [ $status2 -ne 0 ] || [ $status3 -ne 0 ]; then
+                      exit 1
+                  fi
+
+            - name: Run on pull requests
+              if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'feature/')
+              run: |
+                  vendor/bin/robo validate:commit-messages
