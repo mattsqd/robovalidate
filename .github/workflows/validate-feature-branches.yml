@@ -38,7 +38,7 @@ jobs:
                   vendor/bin/robo validate:coding-standards || status2=$? || status2=0
 
                   # Exit with a non-zero status if any command failed
-                  if [ $status1 -ne 0 ] || [ $status2 -ne 0 ] || [ $status3 -ne 0 ]; then
+                  if [ "$status1" -ne 0 ] || [ "$status2" -ne 0 ] || [ "$status3" -ne 0 ]; then
                       exit 1
                   fi
 
