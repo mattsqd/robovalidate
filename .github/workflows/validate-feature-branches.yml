@@ -34,8 +34,8 @@ jobs:
               run: |
                   # Run all commands and capture their exit statuses
                   vendor/bin/robo validate:branch-name || status1=$? || status1=0
-                  vendor/bin/robo validate:coding-standards || status2=$? || status2=0
                   vendor/bin/robo validate:composer-lock || status3=$? || status3=0
+                  vendor/bin/robo validate:coding-standards || status2=$? || status2=0
 
                   # Exit with a non-zero status if any command failed
                   if [ $status1 -ne 0 ] || [ $status2 -ne 0 ] || [ $status3 -ne 0 ]; then
