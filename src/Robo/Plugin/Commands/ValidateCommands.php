@@ -433,6 +433,9 @@ class ValidateCommands extends Tasks
             $opts
         );
         $replace = static function ($subject) use ($project_id) {
+            if (NULL === $subject) {
+                return $subject;
+            }
             return str_replace(
                 '{$project_id}',
                 preg_quote($project_id),
