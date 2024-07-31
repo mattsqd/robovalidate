@@ -453,6 +453,14 @@ class ValidateCommands extends Tasks
         var_dump('CURRENT BRANCH:');
         if ($current_branch !== 'HEAD') {
             $current_branch = "$git_remote/$current_branch";
+            // Fetch the latest in the target branch.
+            if (!$this->_exec(
+                "git fetch $git_remote $target_branch:refs/remotes/$current_branch"
+            )->wasSuccessful()) {
+                $this->printError('Unable to fetch the current branch.');
+
+                return new ResultData(ResultData::EXITCODE_ERROR);
+            }
         }
         var_dump($current_branch);
         $git_command = "git log $git_remote/$target_branch...$current_branch --pretty=format:%s --no-merges";
