@@ -32,6 +32,11 @@ jobs:
             - name: Run on feature branches
               if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/feature/')
               run: |
+                  # Initialize status variables to 0
+                  status1=0
+                  status2=0
+                  status3=0
+                  php --version
                   # Run all commands and capture their exit statuses
                   vendor/bin/robo validate:branch-name || status1=$? || status1=0
                   vendor/bin/robo validate:composer-lock || status3=$? || status3=0
