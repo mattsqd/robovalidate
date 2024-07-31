@@ -36,6 +36,12 @@ jobs:
             -   name: Install Composer dependencies
                 run: |
                     composer install --ignore-platform-reqs --optimize-autoloader --no-progress --no-ansi
+                    # If a Robo command exits with a failure and a RoboFile.php does not exist
+                    # a warning about 'Robo is not initialized here. Please run `robo init` to create a new RoboFile.'
+                    # will be created, which might make users think that is what the error was caused by.
+                    if [ ! -f "RoboFile.php" ]; then
+                        vendor/bin/robo init
+                    fi
 
             -   name: Validate a change to any branch
                 if: github.event_name == 'push'
