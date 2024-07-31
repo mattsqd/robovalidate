@@ -396,6 +396,7 @@ class ValidateCommands extends Tasks
         array $opts = [
             'project-id' => '',
             'target-branch' => 'develop',
+            'current-branch' => 'HEAD',
             'git-remote' => 'origin',
             'pattern' => '/^{$project_id}-(\d+): /',
             'short-help' => 'Commit messages must start with: \'{$project_id}-x:y\'',
@@ -417,12 +418,14 @@ class ValidateCommands extends Tasks
         ] = $this->getOptions(['project-id', 'long-help'], $opts, false);
         [
             $target_branch,
+            $current_branch,
             $git_remote,
             $pattern,
             $short_help,
         ] = $this->getOptions(
             [
                 'target-branch',
+                'current-branch',
                 'git-remote',
                 'pattern',
                 'short-help',
@@ -430,6 +433,9 @@ class ValidateCommands extends Tasks
             $opts
         );
         $replace = static function ($subject) use ($project_id) {
+            if (null === $subject) {
+                return null;
+            }
             return str_replace(
                 '{$project_id}',
                 preg_quote($project_id),
@@ -447,7 +453,18 @@ class ValidateCommands extends Tasks
 
             return new ResultData(ResultData::EXITCODE_ERROR);
         }
-        $git_command = "git log $git_remote/$target_branch...HEAD --pretty=format:%s --no-merges";
+        // If the current branch is not using what's checked out, then fetch the latest from
+        // that branch as a local branch.
+        if ($current_branch !== 'HEAD') {
+            if (!$this->_exec(
+                "git fetch $git_remote $current_branch:refs/remotes/$current_branch"
+            )->wasSuccessful()) {
+                $this->printError('Unable to fetch the current branch.');
+
+                return new ResultData(ResultData::EXITCODE_ERROR);
+            }
+        }
+        $git_command = "git log $git_remote/$target_branch...$current_branch --pretty=format:%s --no-merges";
         exec($git_command, $output, $result_code);
         if ($result_code !== 0) {
             $this->printError('Unable to git log data.');

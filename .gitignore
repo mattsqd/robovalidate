@@ -1,5 +1,4 @@
 vendor/
-composer.lock
 # Ignore ide files
 .vscode/
 /.idea/

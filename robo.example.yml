@@ -50,6 +50,8 @@ command:
             options:
                 # This is the branch that the current branch is going to be merged into.
                 target-branch: develop
+                # The git reference to use as the start of the commits going into target-branch.
+                current-branch: 'HEAD'
                 # The name of the git remote to pull the latest commits from.
                 git-remote: origin
                 # The regular expression that must match for all commits not in 'target-branch'.
