@@ -20,7 +20,7 @@ jobs:
                 with:
                     path: /tmp/composer-cache
                     # This project doesn't commit composer.lock, use composer.lock instead if you do.
-                    key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }
+                    key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
 
             -   name: Setup PHP
                 uses: shivammathur/setup-php@v2
