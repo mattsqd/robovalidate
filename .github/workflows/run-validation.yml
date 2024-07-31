@@ -59,5 +59,4 @@ jobs:
             -   name: Validate pull requests
                 if: github.event_name == 'pull_request'
                 run: |
-                    echo "Current branch from github: ${{ github.head_ref }}"
-                    vendor/bin/robo validate:commit-messages --target-branch="${{ github.base_ref }}"
+                    vendor/bin/robo validate:commit-messages --target-branch="${{ github.base_ref }}" --current-branch="${{ github.head_ref }}"
