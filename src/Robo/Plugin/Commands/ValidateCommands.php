@@ -447,6 +447,8 @@ class ValidateCommands extends Tasks
 
             return new ResultData(ResultData::EXITCODE_ERROR);
         }
+        var_dump('CURRENT BRANCH:');
+        var_dump($this->getGitBranch());
         $git_command = "git log $git_remote/$target_branch...HEAD --pretty=format:%s --no-merges";
         exec($git_command, $output, $result_code);
         if ($result_code !== 0) {
