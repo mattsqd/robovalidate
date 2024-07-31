@@ -396,6 +396,7 @@ class ValidateCommands extends Tasks
         array $opts = [
             'project-id' => '',
             'target-branch' => 'develop',
+            'current-branch' => 'HEAD',
             'git-remote' => 'origin',
             'pattern' => '/^{$project_id}-(\d+): /',
             'short-help' => 'Commit messages must start with: \'{$project_id}-x:y\'',
@@ -417,12 +418,14 @@ class ValidateCommands extends Tasks
         ] = $this->getOptions(['project-id', 'long-help'], $opts, false);
         [
             $target_branch,
+            $current_branch,
             $git_remote,
             $pattern,
             $short_help,
         ] = $this->getOptions(
             [
                 'target-branch',
+                'current-branch',
                 'git-remote',
                 'pattern',
                 'short-help',
@@ -448,8 +451,8 @@ class ValidateCommands extends Tasks
             return new ResultData(ResultData::EXITCODE_ERROR);
         }
         var_dump('CURRENT BRANCH:');
-        var_dump($this->getGitBranch());
-        $git_command = "git log $git_remote/$target_branch...HEAD --pretty=format:%s --no-merges";
+        var_dump($current_branch);
+        $git_command = "git log $git_remote/$target_branch...$current_branch --pretty=format:%s --no-merges";
         exec($git_command, $output, $result_code);
         if ($result_code !== 0) {
             $this->printError('Unable to git log data.');
