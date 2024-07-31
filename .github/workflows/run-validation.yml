@@ -33,7 +33,7 @@ jobs:
                     key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
                     restore-keys: ${{ runner.os }}-composer
 
-            -   name: Install Composer dependencies
+            -   name: Install Composer dependencies and initialize Robo
                 run: |
                     composer install --ignore-platform-reqs --optimize-autoloader --no-progress --no-ansi
                     # If a Robo command exits with a failure and a RoboFile.php does not exist
@@ -50,7 +50,6 @@ jobs:
                     status1=0
                     status2=0
                     status3=0
-                    php --version
 
                     # Run all commands and capture their exit statuses
                     vendor/bin/robo validate:branch-name || status1=$? || status1=0
