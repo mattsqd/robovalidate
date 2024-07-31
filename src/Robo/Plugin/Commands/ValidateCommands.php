@@ -450,8 +450,8 @@ class ValidateCommands extends Tasks
 
             return new ResultData(ResultData::EXITCODE_ERROR);
         }
-        // If the current branch is not using what's checked out, then fetch the latest from that
-        // branch as a local branch.
+        // If the current branch is not using what's checked out, then fetch the latest from
+        // that branch as a local branch.
         if ($current_branch !== 'HEAD') {
             if (!$this->_exec(
                 "git fetch $git_remote $current_branch:refs/remotes/$current_branch"
