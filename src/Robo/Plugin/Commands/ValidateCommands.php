@@ -450,9 +450,9 @@ class ValidateCommands extends Tasks
 
             return new ResultData(ResultData::EXITCODE_ERROR);
         }
-        var_dump('CURRENT BRANCH:');
+        // If the current branch is not using what's checked out, then fetch the latest from that
+        // branch as a local branch.
         if ($current_branch !== 'HEAD') {
-            // Fetch the latest in the target branch.
             if (!$this->_exec(
                 "git fetch $git_remote $current_branch:refs/remotes/$current_branch"
             )->wasSuccessful()) {
@@ -461,7 +461,6 @@ class ValidateCommands extends Tasks
                 return new ResultData(ResultData::EXITCODE_ERROR);
             }
         }
-        var_dump($current_branch);
         $git_command = "git log $git_remote/$target_branch...$current_branch --pretty=format:%s --no-merges";
         exec($git_command, $output, $result_code);
         if ($result_code !== 0) {
