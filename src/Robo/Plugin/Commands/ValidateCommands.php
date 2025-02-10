@@ -50,6 +50,10 @@ class ValidateCommands extends Tasks
      */
     protected function getGitBranch(): ?string
     {
+        $branch_name = getenv('ROBO_VALIDATE_BRANCH_NAME') ?: '';
+        if (strlen($branch_name)) {
+            return $branch_name;
+        }
         if (!$this->isGitRepo()) {
             $this->printError(
                 'The current directory is not a git repo, cannot retrieve branch name'
@@ -126,9 +130,40 @@ class ValidateCommands extends Tasks
      * Run all validations.
      *
      * @command validate:all
+     *
+     * @arg string $run_type The default of 'all' will cause every defined command to run.
+     *   'only_pr' will run commands that have 'only_pr' set to 1.
+     *   'non_pr' will run commands that don't have 'only_pr' set to 1.
+     *
+     * @option none Will cause no validations to run if 1.
+     * @option commands An array of array with keys robo_command, label, and
+     *    only_pr.
+     *
+     * @return \Robo\ResultData
      */
-    public function validateAll(): ResultData
-    {
+    public function validateAll(
+        string $run_type = 'all',
+        array $opts = [
+            'none' => 0,
+            'commands' => [
+                ['robo_command' => 'validate:coding-standards', 'label' => 'Coding Standards'],
+                ['robo_command' => 'validate:composer-lock', 'label' => 'Composer Lock File'],
+                ['robo_command' => 'validate:commit-messages', 'label' => 'Commit Messages', 'only_pr' => 1],
+                ['robo_command' => 'validate:branch-name', 'label' => 'Branch Name'],
+            ],
+        ]
+    ): ResultData {
+        [
+            $none,
+            $commands,
+        ] = $this->getOptions([
+            'none',
+            'commands',
+        ], $opts, false);
+        if ($none) {
+            $this->sayWithWrapper('Skipping validate:all as configured.');
+            return new ResultData();
+        }
         $table = new Table($this->output());
         $table
             ->setHeaders(
@@ -138,30 +173,26 @@ class ValidateCommands extends Tasks
                     'Command (use this to diagnose individual tests without running all)',
                 ]
             );
-        $output_data[] = [
-            'Coding Standards',
-            $this->runRoboCommand('validate:coding-standards')->wasSuccessful(
-            ) ? 'Yes' : 'No',
-            'validate:coding-standards',
-        ];
-        $output_data[] = [
-            'Composer Lock File',
-            $this->runRoboCommand('validate:composer-lock')->wasSuccessful(
-            ) ? 'Yes' : 'No',
-            'validate:composer-lock',
-        ];
-        $output_data[] = [
-            'Commit Messages',
-            $this->runRoboCommand('validate:commit-messages')->wasSuccessful(
-            ) ? 'Yes' : 'No',
-            "validate:commit-messages",
-        ];
-        $output_data[] = [
-            'Branch Name',
-            $this->runRoboCommand('validate:branch-name')->wasSuccessful(
-            ) ? 'Yes' : 'No',
-            "validate:branch-name",
-        ];
+        foreach ($commands as $command) {
+            // If one only wants to run commands that are good for PR.
+            if ($run_type === 'only_pr' && !($command['only_pr'] ?? 0)) {
+                continue;
+            // If one only wants to run commands that are not good for PR.
+            } elseif ($run_type === 'non_pr' && ($command['only_pr'] ?? 0)) {
+                continue;
+            }
+            if (empty($command['label']) || empty($command['robo_command'])) {
+                throw new \Exception('Every item in the namespace command:validate:all:commands must have' .
+                    ' both a robo_command AND label to run. See robo.example.yml for examples.');
+            }
+            $output_data[] = [
+                $command['label'],
+                $this->runRoboCommand($command['robo_command'])->wasSuccessful(
+                ) ? 'Yes' : 'No',
+                $command['robo_command'],
+            ];
+        }
+
         $table->setRows($output_data);
         $success = true;
         foreach ($output_data as $datum) {
@@ -442,6 +473,9 @@ class ValidateCommands extends Tasks
                 $subject
             );
         };
+        if (getenv('ROBO_VALIDATE_TARGET_BRANCH') !== false) {
+            $target_branch = getenv('ROBO_VALIDATE_TARGET_BRANCH');
+        }
         $this->sayWithWrapper(
             "Validating commit messages to be added to '$target_branch'"
         );
@@ -452,6 +486,9 @@ class ValidateCommands extends Tasks
             $this->printError('Unable to fetch the target branch.');
 
             return new ResultData(ResultData::EXITCODE_ERROR);
+        }
+        if (getenv('ROBO_VALIDATE_CURRENT_BRANCH') !== false) {
+            $current_branch = getenv('ROBO_VALIDATE_CURRENT_BRANCH');
         }
         // If the current branch is not using what's checked out, then fetch the latest from
         // that branch as a local branch.
@@ -504,8 +541,9 @@ class ValidateCommands extends Tasks
      *
      * @command validate:branch-name
      *
-     * @arg string $branch_name The branch name to validate. If not given it
-     *   the current branch will attempt to be detected.
+     * @arg string $branch_name The branch name to validate. If not given, the
+     *   environment variable ROBO_VALIDATE_BRANCH_NAME will be checked first,
+     *   then current branch will attempt to be detected via git commands.
      *
      * @option string $project-id Used as a token replacement in $pattern.
      *   Defaults to ''.
