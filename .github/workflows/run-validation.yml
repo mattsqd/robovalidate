@@ -22,6 +22,11 @@ jobs:
                     # https://github.com/shivammathur/setup-php?tab=readme-ov-file#disable-coverage
                     coverage: none
 
+            -   name: Extract branch name
+                shell: bash
+                run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+                id: extract_branch
+
             -   name: Get composer cache directory
                 id: composer-cache
                 run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
@@ -48,20 +53,23 @@ jobs:
                 run: |
                     # Initialize status variables to 0
                     status1=0
-                    status2=0
-                    status3=0
 
-                    # Run all commands and capture their exit statuses
-                    vendor/bin/robo validate:branch-name || status1=$? || status1=0
-                    vendor/bin/robo validate:composer-lock || status3=$? || status3=0
-                    vendor/bin/robo validate:coding-standards || status2=$? || status2=0
+                    ROBO_VALIDATE_BRANCH_NAME=${{ steps.extract_branch.outputs.branch }} vendor/bin/robo validate:all non_pr
 
-                    # Exit with a non-zero status if any command failed
-                    if [ "$status1" -ne 0 ] || [ "$status2" -ne 0 ] || [ "$status3" -ne 0 ]; then
+                    # Exit with a non-zero status if the command failed
+                    if [ "$status1" -ne 0 ]; then
                       exit 1
                     fi
 
             -   name: Validate pull requests
                 if: github.event_name == 'pull_request'
                 run: |
-                    vendor/bin/robo validate:commit-messages --target-branch="${{ github.base_ref }}" --current-branch="${{ github.head_ref }}"
+                    # Initialize status variables to 0
+                    status1=0
+
+                    ROBO_VALIDATE_TARGET_BRANCH="${{ github.base_ref }}" ROBO_VALIDATE_CURRENT_BRANCH="${{ github.head_ref }}" ./robo.sh validate:all only_pr
+
+                    # Exit with a non-zero status if the command failed
+                    if [ "$status1" -ne 0 ]; then
+                      exit 1
+                    fi
