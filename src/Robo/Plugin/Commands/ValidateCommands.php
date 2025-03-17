@@ -203,11 +203,11 @@ class ValidateCommands extends Tasks
         $table->render();
         if ($success) {
             $this->sayWithWrapper('All tests are valid');
+            return new ResultData();
         } else {
             $this->printError('At least one test has failed');
+            return new ResultData(ResultData::EXITCODE_ERROR);
         }
-
-        return new ResultData();
     }
 
     /**
