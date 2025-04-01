@@ -177,7 +177,7 @@ class ValidateCommands extends Tasks
             // If one only wants to run commands that are good for PR.
             if ($run_type === 'only_pr' && !($command['only_pr'] ?? 0)) {
                 continue;
-            // If one only wants to run commands that are not good for PR.
+                // If one only wants to run commands that are not good for PR.
             } elseif ($run_type === 'non_pr' && ($command['only_pr'] ?? 0)) {
                 continue;
             }
@@ -310,35 +310,66 @@ class ValidateCommands extends Tasks
             $custom_profiles_path = $custom_profiles_path ?? $web_root . 'profiles/custom';
             $custom_theme_path = $custom_theme_path ?? $web_root . 'themes/custom';
 
-            $paths = [
-                $custom_modules_path => [],
-                $custom_profiles_path => [],
-                $custom_theme_path => [],
+            $default_paths = $paths = [
+                $custom_modules_path,
+                $custom_profiles_path,
+                $custom_theme_path,
             ];
+            // Remove any path that does not exist.
+            foreach ($paths as $key => $path) {
+                if (!is_dir($path)) {
+                    unset($paths[$key]);
+                }
+            }
+            if (empty($paths)) {
+                $this->printError(
+                    'None of the following default folders existed, ' . implode(', ', $default_paths) .
+                    '. You must set paths explicitly in your robo.yml.'
+                );
+
+                return new ResultData(ResultData::EXITCODE_ERROR);
+            }
+            $paths = [implode(',', $paths) => []];
         }
+
         // Set similar option defaults on the paths.
         foreach ($paths as &$options) {
-            $options += $similar_options;
-        }
-        unset($options);
-        // Remove any path that does not actually exist.
-        foreach ($paths as $path => $options) {
-            if (!is_dir($path)) {
-                unset($paths[$path]);
+            if (!is_null($options)) {
+                $options += $similar_options;
+            } else {
+                // If paths is given as 'path:' with no {} after, then it will be null, don't add similar options.
+                // If it is 'path: {}' then add on similar options above.
+                $options = [];
             }
         }
-        if (empty($paths)) {
-            $this->printError(
-                'Unable to find any folders to run coding standards checks on.'
-            );
 
-            return new ResultData(ResultData::EXITCODE_ERROR);
+        unset($options);
+
+        // Go through any path that has multiples and switch the comma sep to a space sep.
+        foreach ($paths as $path => $options) {
+            $multi_paths = explode(',', $path);
+            if (count($multi_paths) > 1) {
+                unset($paths[$path]);
+                $paths[implode(',', $multi_paths)] = $options;
+            }
         }
         $one_failed = false;
         foreach ($paths as $path => $path_options) {
-            $success = $this->taskExec('./vendor/bin/phpcs')
+            $flags = [];
+            foreach ($path_options as $key => $path_option) {
+                if (strlen($key) === 1) {
+                    $flags[] = $key;
+                    unset($path_options[$key]);
+                }
+            }
+            if (!empty($flags)) {
+                $flags = ' -'.implode(' -', $flags);
+            } else {
+                $flags = '';
+            }
+            $success = $this->taskExec('./vendor/bin/phpcs' . $flags)
                 ->options($path_options, '=')
-                ->arg($path)
+                ->args(explode(',', $path))
                 ->run()->wasSuccessful();
             if (!$one_failed && !$success) {
                 $one_failed = true;
@@ -866,8 +897,8 @@ class ValidateCommands extends Tasks
             // Check if the line starts with #, that is a comment. Capture all the comments...
             if (preg_match('/^\s*#/', $line)) {
                 $lines_in_comment_block[] = trim($line);
-            // Until we get to a non-comment. Unless that line is the final key that we're looking for, discard
-            // all previous comments found.
+                // Until we get to a non-comment. Unless that line is the final key that we're looking for, discard
+                // all previous comments found.
             } else {
                 // Check if the line starts with empty space + $current_yml_key + :
                 // If yes, it means all comments found before are for this key.
@@ -876,7 +907,7 @@ class ValidateCommands extends Tasks
                     // the comments yet. Instead, get the next parent as the current.
                     if (!empty($yml_keys_descending)) {
                         $current_yml_key = array_shift($yml_keys_descending);
-                    // The final key has been found, $lines_in_comment_block is now only its comments.
+                        // The final key has been found, $lines_in_comment_block is now only its comments.
                     } else {
                         break;
                     }
