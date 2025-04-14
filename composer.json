@@ -15,8 +15,8 @@
     "type": "robo-tasks",
     "license": "GPL-2.0-or-later",
     "require": {
-        "consolidation/robo": "^3.0.9 || ^4.0.1",
-        "php": ">=8.0.17"
+      "php": ">=8.2",
+      "consolidation/robo": "^3.0 || ^4.0 || ^5.0"
     },
     "suggest": {
         "squizlabs/php_codesniffer": "Recommended if wanting to validate coding standards."
@@ -37,7 +37,7 @@
         "optimize-autoloader": true,
         "sort-packages": true,
         "platform": {
-            "php": "8.0.17"
+            "php": "8.2"
         }
     }
 }
