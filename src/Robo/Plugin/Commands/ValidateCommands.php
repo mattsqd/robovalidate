@@ -367,11 +367,30 @@ class ValidateCommands extends Tasks
             } else {
                 $flags = '';
             }
-            $success = $this->taskExec('./vendor/bin/phpcs' . $flags)
+            $success1 = $this->taskExec('./vendor/bin/phpcs' . $flags)
                 ->options($path_options, '=')
                 ->args(explode(',', $path))
                 ->run()->wasSuccessful();
-            if (!$one_failed && !$success) {
+            if (!$success1 &&
+                $this->confirm('There were PHPCS issues found. Would you like to run PHPCBF to attempt to' .
+                    ' automatically fix these?', false)
+            ) {
+                $this->taskExec('./vendor/bin/phpcbf' . $flags)
+                    ->options($path_options, '=')
+                    ->args(explode(',', $path))
+                    ->run()->wasSuccessful();
+                // Re-run PHPCS again to see if all issues were fixed.
+                $success2 = $this->taskExec('./vendor/bin/phpcs' . $flags)
+                    ->options($path_options, '=')
+                    ->args(explode(',', $path))
+                    ->run()->wasSuccessful();
+                if (!$success2) {
+                    $this->printError('PHPCBF was unable to automatically fix all PHPCS issues.');
+                }
+                if (!$one_failed && !$success2) {
+                    $one_failed = true;
+                }
+            } elseif (!$one_failed && !$success1) {
                 $one_failed = true;
             }
         }
