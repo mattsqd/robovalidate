@@ -371,7 +371,10 @@ class ValidateCommands extends Tasks
                 ->options($path_options, '=')
                 ->args(explode(',', $path))
                 ->run()->wasSuccessful();
-            if (!$success1 && $this->confirm('There were PHPCS issues found. Would you like to run PHPCBF to attempt to automatically fix these?', false)) {
+            if (!$success1 &&
+                $this->confirm('There were PHPCS issues found. Would you like to run PHPCBF to attempt to' .
+                    ' automatically fix these?', false)
+            ) {
                 $this->taskExec('./vendor/bin/phpcbf' . $flags)
                     ->options($path_options, '=')
                     ->args(explode(',', $path))
